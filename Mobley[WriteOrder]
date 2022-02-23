@@ -1,0 +1,71 @@
+//AUTHOR: Travis Mobley
+//COURSE: CPT 187
+//PURPOSE: Creates a record of the user's orders so that they can view what it is they are buying upon checkout,
+//and keeps a record of the user's order history.
+//STARTDATE: 2.15.2022
+
+
+package edu.cpt187.mobley.exercise6;
+
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+
+public class WriteOrder 
+{
+	//declare and initialize constants and variables
+	private boolean fileFoundFlag = false;
+	private String masterFileName = "";
+	private int recordCount = 0;
+
+	//non-default constructor
+	public WriteOrder(String borrowedFileName)
+	{
+		masterFileName = borrowedFileName;
+	}//END of non-default constructor
+	
+	//SETTERS section
+	//setter to write order
+	public void setWriteOrder(int borrowedItemID, String borrowedItemName, double borrowedItemPrice, int borrowedQuantity, double borrowedOrderCost)
+	{
+		//Tries to open file and write logic
+		try
+		{
+			PrintWriter filePW = new PrintWriter (new FileWriter(masterFileName, true));
+			
+			filePW.printf("%n%d\t%s\t%f\t%d\t%f", borrowedItemID, borrowedItemName, borrowedItemPrice, borrowedQuantity, borrowedOrderCost);
+			
+			recordCount ++;
+			
+			fileFoundFlag = true;
+			
+			filePW.close();
+		}//END of try
+		
+		//sends file not found back if file could not be written 
+		catch(IOException ex) 
+		{
+			fileFoundFlag = false;
+		}//END of catch
+	}//END of setter for write order
+	
+	//GETTERs section
+	//getter for file found flag
+	public boolean getFileFoundFlag()
+	{
+		return fileFoundFlag;
+	}//END of getter for file found flag
+	
+	//getter for file name
+	public String getFileName()
+	{
+		return masterFileName;
+	}//END of getter for file name
+	
+	//getter for record count
+	public int getRecordCount()
+	{
+		return recordCount;
+	}//END of getter for record count
+
+}//END of class WriteOrder
