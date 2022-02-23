@@ -1,0 +1,318 @@
+//AUTHOR: Travis Mobley
+//COURSE: CPT 187
+//PURPOSE: Provides prizes and discounts types and handles the inventory.
+//STARTDATE: 2.15.2022
+
+
+package edu.cpt187.mobley.exercise6;
+
+import java.util.Scanner;
+import java.util.Random;
+import java.io.FileInputStream;
+import java.io.IOException;
+
+public class Inventory 
+{
+	//declare and initialize all constants and variables
+	private final String[] DISCOUNT_NAMES = {"Club Member", "Club Senior", "Special Offer", "No Discount"};
+	private final double[] DISCOUNT_RATES = {0.15, 0.25, 0.2, 0};
+	private final String[] PRIZE_NAMES = {"Super Slinky", "Mega Marbles", "Hoola-Hoop"};
+	private final int MAX_RECORDS = 35;
+	private final int NOT_FOUND = -1;
+	private final int ONE = 1;
+	private final int RESET_VALUE = 0;
+
+	private int[] itemIDs = new int [MAX_RECORDS];
+	private String[] itemNames = new String [MAX_RECORDS];
+	private double[] itemPrices = new double [MAX_RECORDS];
+	private int[] orderQuantities = new int [MAX_RECORDS];
+	private double[] orderTotals = new double [MAX_RECORDS];
+	private int[] inStockCounts = new int [MAX_RECORDS];
+	private int itemSearchIndex = 0;
+	private int recordCount = 0;
+
+	private Random prizeGenerator = new Random();
+
+	//default constructor
+	public Inventory() 
+	{	
+	}//END of default constructor
+
+	//SETTER section
+	//setter for reducing stock count
+	public void setDecreaseInStock(int borrowedHowMany)
+	{
+		inStockCounts[itemSearchIndex] = inStockCounts[itemSearchIndex] - borrowedHowMany;
+	}//END of setter for reducing stock count
+
+	//setter for loading items in SELECTED FILE
+	public void setLoadItems(String borrowedFileName) 
+	{
+		//try block that attempts to open file
+		try 
+		{
+			Scanner infile = new Scanner (new FileInputStream(borrowedFileName));	
+			recordCount = RESET_VALUE;
+			//while loop to assign fields
+			while (infile.hasNext() == true && recordCount < MAX_RECORDS) 
+			{
+				itemIDs[recordCount] = infile.nextInt();
+
+				itemNames[recordCount] = infile.next();
+
+				itemPrices[recordCount] = infile.nextDouble();
+
+				inStockCounts[recordCount] = infile.nextInt();
+
+				recordCount++;
+			}//END of while to assign fields
+			//closes file
+			infile.close();
+			setBubbleSort();
+		}//END of try
+		//catches error if try block fails
+		catch(IOException ex)
+		{
+			recordCount = NOT_FOUND;
+		}//END of catch
+	}//END of setter for loading items
+
+	//setter for loading items in MASTER FILE
+	public void setLoadItems(String borrowedFileName, int borrowedSize)
+	{
+		//try block that attempts to open file
+		try 
+		{
+			Scanner infile = new Scanner (new FileInputStream(borrowedFileName));	
+			recordCount = RESET_VALUE;
+			//while loop to assign fields
+			while (infile.hasNext() == true && recordCount < MAX_RECORDS && recordCount < borrowedSize) 
+			{
+				itemIDs[recordCount] = infile.nextInt();
+
+				itemNames[recordCount] = infile.next();
+
+				itemPrices[recordCount] = infile.nextDouble();
+
+				orderQuantities[recordCount] = infile.nextInt();
+
+				orderTotals[recordCount] = infile.nextDouble();
+
+				recordCount++;
+			}//END of while to assign fields
+			//closes file
+			infile.close();
+			setBubbleSort();
+		}//END of try
+		//catches error if try block fails
+		catch(IOException ex)
+		{
+			recordCount = NOT_FOUND;
+		}//END of catch
+	}//END of setter for loading file with 3 tests
+
+	//setter for assigning search index
+	public void setSearchIndex(int borrowedID)
+	{
+		itemSearchIndex = getBinSearch(borrowedID);
+	}
+
+	//setter for bubble sort
+	public void setBubbleSort()
+	{
+		int localLast = recordCount - ONE;
+		boolean localSwap = false;
+		int localIndex = 0;
+
+		//while local last > 0
+		while (localLast > RESET_VALUE)
+		{
+			localIndex = RESET_VALUE;
+
+			localSwap = false;
+
+			//while local index < local last
+			while(localIndex < localLast)
+			{
+				if(itemIDs[localIndex] > itemIDs[localIndex + ONE])
+				{
+					setSwapArrayElements(localIndex);
+					localSwap = true;
+				}//END of if
+				localIndex++;
+			}//END of while
+			if(localSwap == false) 
+			{
+				localLast = RESET_VALUE;
+			}//END of if
+			else 
+			{
+				localLast--;
+			}//END of else
+		}//END of while local last > 0
+	}//END of setter for bubble sort
+
+	//setter for swap array
+	public void setSwapArrayElements(int borrowedIndex) 
+	{
+		int localItemID = itemIDs[borrowedIndex];
+		itemIDs[borrowedIndex] = itemIDs[borrowedIndex + ONE];
+		itemIDs[borrowedIndex + ONE] = localItemID;
+
+		String localItemName = itemNames[borrowedIndex];
+		itemNames[borrowedIndex] = itemNames[borrowedIndex + ONE];
+		itemNames[borrowedIndex + ONE] = localItemName;
+
+		double localItemPrice = itemPrices[borrowedIndex];
+		itemPrices[borrowedIndex] = itemPrices[borrowedIndex + ONE];
+		itemPrices[borrowedIndex + ONE] = localItemPrice;
+
+		int localInStockCount = inStockCounts[borrowedIndex];
+		inStockCounts[borrowedIndex] = inStockCounts[borrowedIndex + ONE];
+		inStockCounts[borrowedIndex + ONE] = localInStockCount;
+
+		int localQuantities = orderQuantities[borrowedIndex];
+		orderQuantities[borrowedIndex] = orderQuantities[borrowedIndex + ONE];
+		orderQuantities[borrowedIndex + ONE] = localQuantities;
+
+		double localTotals = orderTotals[borrowedIndex];
+		orderTotals[borrowedIndex] = orderTotals[borrowedIndex + ONE];
+		orderTotals[borrowedIndex + ONE] = localTotals;
+	}//END of setter for swap array
+
+	//GETTERS section
+	//getter for binary search
+	public int getBinSearch(int borrowedBorrowedID)
+	{
+		int localTwo = 2;
+		int localFirst = 0;
+		int localLast = recordCount - ONE;
+		int localMid = 0;
+		boolean localFound = false;
+
+		while(localFirst <= localLast && localFound == false) 
+		{
+			localMid = (localFirst + localLast) / localTwo;
+
+			if(itemIDs[localMid] == borrowedBorrowedID) 
+			{
+				localFound = true;
+			}//END of if
+
+			else
+			{
+				if(itemIDs[localMid] < borrowedBorrowedID) 
+				{
+					localFirst = localMid + ONE;
+				}//END of if
+				else 
+				{
+					localLast = localMid - ONE;
+				}//END of else
+			}//END of else
+		}//END of while
+
+		if(localFound == false) 
+		{
+			localMid = NOT_FOUND;
+		}//END of if
+
+		return localMid;
+	}//END of getter for binary search
+
+	//getter for int stock counts
+	public int[] getInStockCounts()
+	{
+		return inStockCounts;
+	}//END of getter for in stock counts
+
+	//getter for item ids
+	public int[] getItemIDs()
+	{
+		return itemIDs;
+	}//END of getter for item ids
+
+	//getter for item names
+	public String[] getItemNames()
+	{
+		return itemNames;
+	}//END of getter for item names
+
+	//getter for item prices
+	public double[] getItemPrices()
+	{
+		return itemPrices;
+	}//END of getter for item prices
+
+	//getter for discount names
+	public String[] getDiscountNames()
+	{
+		return DISCOUNT_NAMES;
+	}//END of getter for discount names
+
+	//getter for discount rates
+	public double[] getDiscountRates()
+	{
+		return DISCOUNT_RATES;
+	}//END of getter for discount rates
+
+	//getter for order quantities
+	public int[] getOrderQuantities()
+	{
+		return orderQuantities;
+	}//END of getter for order quantities
+
+	//getter for order totals
+	public double[] getOrderTotals()
+	{
+		return orderTotals;
+	} //END of getter for order totals
+
+	//Getter for prize names
+	public String[] getPrizeNames() 
+	{
+		return PRIZE_NAMES;
+	}//END of getter for prize names
+
+	//GETTER for random number
+	public int getRandomNumber() 
+	{
+		//selects random number based of prize names array length 
+		return prizeGenerator.nextInt(PRIZE_NAMES.length);
+	}//END of getter for random number
+
+	//getter for max records
+	public int getMaxRecords() 
+	{
+		return MAX_RECORDS;
+	}//END of getter for max records
+
+	//getter for item search index
+	public int getItemSearchIndex() 
+	{
+		return itemSearchIndex;
+	}//END of getter for item search index
+
+	//getter for record count
+	public int getRecordCount() 
+	{
+		return recordCount;
+	}//END of getter for record count
+
+	//getter for grand total
+	public double getGrandTotal() 
+	{
+		int localIndex = 0;
+		double localGrandTotal = 0.0;
+
+		//finds grand total by adding all of the order totals in the order totals index limited to the amount of orders made
+		while (localIndex < recordCount) 
+		{
+			localGrandTotal = localGrandTotal + orderTotals[localIndex];
+
+			localIndex ++;
+		}//END of while loop
+		return localGrandTotal;
+	}//END of getter for grand total
+
+}//END of class inventory
